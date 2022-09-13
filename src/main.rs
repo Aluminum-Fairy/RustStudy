@@ -1,27 +1,23 @@
-use actix_web::{get,post,web::{self, Query},App,HttpResponse,HttpServer,Responder};
+use actix_web::{web,App,HttpServer,Responder, get};
 
+struct AppState{
+    app_name :String,
+}
 
 #[get("/")]
-async fn hello()-> impl Responder{
-    HttpResponse::Ok().body("Hello World")
-}
-
-#[post("/")]
-async fn echo(query:String,times:String) -> impl Responder{
-    HttpResponse::Ok().body(query+&times)
-}
-
-async fn manual_hello() -> impl Responder{
-    HttpResponse::Ok().body("Hey There")
+async fn index(data: web ::Data<AppState>) -> impl Responder{
+    let app_name = &data.app_name;      //get App Name
+    format!("Hello {app_name}")                 //response with app_name
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()>{
-    HttpServer::new(|| {
+    HttpServer::new(||{
         App::new()
-            .service(hello)
-            .service(echo)
-            .route("/hey",web::get().to(manual_hello))
+            .app_data(web::Data::new(AppState{
+                app_name: String ::from ("Actix Web"),
+            }))
+            .service(index)
     })
     .bind(("0.0.0.0",8081))?
     .run()
